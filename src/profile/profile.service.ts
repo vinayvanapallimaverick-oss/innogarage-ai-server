@@ -7,15 +7,19 @@ import { Readable } from 'stream';
 
 @Injectable()
 export class ProfileService {
+  private cloudinaryConfigured = false;
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
   ) {
-    cloudinary.config({
-      cloud_name: this.configService.get<string>('CLOUDINARY_CLOUD_NAME'),
-      api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
-      api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
-    });
+    const cloudName = this.configService.get<string>('CLOUDINARY_CLOUD_NAME');
+    const apiKey = this.configService.get<string>('CLOUDINARY_API_KEY');
+    const apiSecret = this.configService.get<string>('CLOUDINARY_API_SECRET');
+    if (cloudName && apiKey && apiSecret) {
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+      this.cloudinaryConfigured = true;
+    }
   }
 
   private uploadToCloudinary(
@@ -49,9 +53,14 @@ export class ProfileService {
       prompt: dto.prompt,
       role: dto.role,
       experience: dto.experience,
+      companyName: dto.companyName || null,
+      interviewType: dto.interviewType || null,
     };
 
     if (file) {
+      if (!this.cloudinaryConfigured) {
+        throw new Error('File upload is not available — Cloudinary is not configured');
+      }
       // Delete old resume from Cloudinary if it exists
       const existing = await this.prisma.profile.findUnique({ where: { userId } });
       if (existing?.resumeCloudinaryId) {
