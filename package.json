@@ -6,8 +6,8 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "npx nest build",
-    "start": "npx nest start",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/main",
     "start:dev": "npx nest start --watch",
     "start:prod": "node dist/main",
     "prisma:generate": "prisma generate",
@@ -36,7 +36,9 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "stripe": "^20.4.1"
+    "stripe": "^20.4.1",
+    "prisma": "^5.8.1",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",
@@ -44,8 +46,6 @@
     "@types/node": "^20.11.5",
     "@types/nodemailer": "^6.4.14",
     "@types/passport-jwt": "^4.0.1",
-    "prisma": "^5.8.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "ts-node": "^10.9.2"
   }
 }
