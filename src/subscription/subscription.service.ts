@@ -18,10 +18,15 @@ export class SubscriptionService {
     private configService: ConfigService,
   ) {
     const secretKey = this.configService.get<string>('STRIPE_SECRET_KEY', '');
-    this.stripe = new Stripe(secretKey, { apiVersion: '2026-02-25.clover' });
+    if (secretKey) {
+      this.stripe = new Stripe(secretKey, { apiVersion: '2026-02-25.clover' });
+    }
   }
 
   async createCheckoutSession(userId: string, plan: string) {
+    if (!this.stripe) {
+      throw new BadRequestException('Stripe is not configured');
+    }
     const planConfig = PLAN_CONFIG[plan];
     if (!planConfig) {
       throw new BadRequestException('Invalid plan');
