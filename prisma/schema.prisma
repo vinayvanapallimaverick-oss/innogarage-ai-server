@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  fullName      String
+  email         String    @unique
+  phone         String?
+  passwordHash  String?
+  googleId      String?   @unique
+  isVerified    Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  otpCodes      OtpCode[]
+  profile       Profile?
+  subscription  Subscription?
+
+  @@map("users")
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  code      String
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("otp_codes")
+}
+
+model Profile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  resumeFilename      String?
+  resumeCloudinaryId  String?
+  resumeUrl           String?
+  prompt              String
+  companyName         String?
+  role                String
+  experience          String
+  interviewType       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Subscription {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  plan                String
+  status              String   @default("active")
+  stripeSessionId     String?  @unique
+  stripePaymentIntent String?
+  amountPaid          Int
+  expiresAt           DateTime
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
