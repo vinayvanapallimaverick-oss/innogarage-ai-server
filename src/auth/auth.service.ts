@@ -42,8 +42,19 @@ export class AuthService {
 
     if (existing) {
       if (!existing.isVerified) {
-        // User exists but never completed email verification (e.g. OTP email failed
-        // previously). Allow them to retry by re-sending a fresh OTP.
+        // No email configured — auto-verify and return token directly
+        if (!this.mailService.isEmailConfigured()) {
+          await this.prisma.user.update({
+            where: { id: existing.id },
+            data: { isVerified: true },
+          });
+          const token = this.generateToken(existing.id, existing.email);
+          return {
+            message: 'Account verified automatically (no email configured)',
+            accessToken: token,
+            user: { id: existing.id, fullName: existing.fullName, email: existing.email, phone: existing.phone },
+          };
+        }
         await this.generateAndSendOtp(existing.id, existing.email);
         return {
           message: 'Verification code resent. Please check your email.',
@@ -62,8 +73,19 @@ export class AuthService {
         email: dto.email.toLowerCase(),
         phone: dto.phone || null,
         passwordHash,
+        isVerified: !this.mailService.isEmailConfigured(),
       },
     });
+
+    // No email configured — return token directly, skip OTP
+    if (!this.mailService.isEmailConfigured()) {
+      const token = this.generateToken(user.id, user.email);
+      return {
+        message: 'Account created and verified automatically',
+        accessToken: token,
+        user: { id: user.id, fullName: user.fullName, email: user.email, phone: user.phone },
+      };
+    }
 
     await this.generateAndSendOtp(user.id, user.email);
 
@@ -85,6 +107,19 @@ export class AuthService {
 
     if (!user || !user.passwordHash || !valid) {
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // No email configured — return token directly, skip OTP
+    if (!this.mailService.isEmailConfigured()) {
+      if (!user.isVerified) {
+        await this.prisma.user.update({ where: { id: user.id }, data: { isVerified: true } });
+      }
+      const token = this.generateToken(user.id, user.email);
+      return {
+        message: 'Login successful',
+        accessToken: token,
+        user: { id: user.id, fullName: user.fullName, email: user.email, phone: user.phone },
+      };
     }
 
     await this.generateAndSendOtp(user.id, user.email);

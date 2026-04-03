@@ -53,6 +53,11 @@ export class MailService implements OnModuleInit {
     }
   }
 
+  /** Returns true when a real email transport is configured (Gmail/Resend/SMTP) */
+  isEmailConfigured(): boolean {
+    return this.mode !== 'console';
+  }
+
   private async sendViaGmail(email: string, html: string): Promise<void> {
     const clientId     = this.configService.get<string>('GOOGLE_CLIENT_ID')!;
     const clientSecret = this.configService.get<string>('GOOGLE_CLIENT_SECRET')!;
