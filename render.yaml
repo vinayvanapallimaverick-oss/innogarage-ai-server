@@ -10,7 +10,7 @@ services:
     runtime: node
     plan: free
     buildCommand: npm install && npx prisma generate && npm run build
-    startCommand: npx prisma migrate deploy && npm run start:prod
+    startCommand: npx prisma migrate resolve --rolled-back 20260331000000_make_company_interview_optional 2>/dev/null; npx prisma migrate deploy && npm run start:prod
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
