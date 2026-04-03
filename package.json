@@ -7,9 +7,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/main",
+    "start": "npx prisma migrate resolve --rolled-back 20260331000000_make_company_interview_optional 2>/dev/null; npx prisma migrate deploy && node dist/main",
     "start:dev": "npx nest start --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "npx prisma migrate resolve --rolled-back 20260331000000_make_company_interview_optional 2>/dev/null; npx prisma migrate deploy && node dist/main",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
